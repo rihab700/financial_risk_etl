@@ -3,7 +3,7 @@
 resources:
   jobs:
     sample_job:
-      name: sample_job
+      name: var_etl_job
 
       trigger:
         # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
@@ -20,29 +20,20 @@ resources:
           default: ${var.catalog}
         - name: schema
           default: ${var.schema}
+        - name: source_path
+          default: ${var.source_path}
+        - name: schema_loc
+          default: ${var.schema_location}
+        - name: checkpoint
+          default: ${var.checkpoint}
+        - name: target_table
+          default: ${var.target_table}
 
       tasks:
         - task_key: notebook_task
           notebook_task:
-            notebook_path: ../src/sample_notebook.ipynb
-        - task_key: python_wheel_task
-          depends_on:
-            - task_key: notebook_task
-          python_wheel_task:
-            package_name: var_etl
-            entry_point: main
-            parameters:
-              - "--catalog"
-              - "${var.catalog}"
-              - "--schema"
-              - "${var.schema}"
-          environment_key: default
-        - task_key: refresh_pipeline
-          depends_on:
-            - task_key: notebook_task
-          pipeline_task:
-            pipeline_id: ${resources.pipelines.var_etl_etl.id}
-
+            notebook_path: ../src/var_notebook.ipynb
+            
       environments:
         - environment_key: default
           spec:

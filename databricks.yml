@@ -19,6 +19,14 @@ variables:
     description: The catalog to use
   schema:
     description: The schema to use
+  source_path:
+    description: The path to the source data
+  schema_location:
+    description: The path to the schema for nestesd json data
+  checkpoint:
+    description: The path to the checkpoint location for the target table
+  target_table:
+    description: The target table to write to
 
 targets:
   dev:
@@ -32,7 +40,11 @@ targets:
       host: https://dbc-5c3cfbeb-be72.cloud.databricks.com
     variables:
       catalog: financial_market
-      schema: ${workspace.current_user.short_name}
+      schema: dev
+      source_path: s3://elt-stock-bucker/stocks/Twelve_Data/
+      schema_location: s3://elt-stock-bucker/schema/twelve_data_upsert_v1/
+      checkpoint: s3://elt-stock-bucker/_checkpoints/twelve_data_upsert_v1/
+      target_table: financial_market.dev.bronze_data
   prod:
     mode: production
     workspace:
@@ -42,6 +54,11 @@ targets:
     variables:
       catalog: financial_market
       schema: prod
+      source_path:
+        default: s3://elt-stock-bucker/stocks/Twelve_Data/
+      schema_location: s3://elt-stock-bucker/schema/twelve_data_upsert_v1/
+      checkpoint: s3://elt-stock-bucker/_checkpoints/twelve_data_upsert_v1/
+      target_table: financial_market.prod.bronze_data
     permissions:
       - user_name: nadia.errasfatou73@gmail.com
         level: CAN_MANAGE
