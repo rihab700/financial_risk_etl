@@ -27,7 +27,17 @@ variables:
     description: The path to the checkpoint location for the target table
   target_table:
     description: The target table to write to
-
+  silver_table:
+    description: The silver table of marke returns
+  gold_var_table:
+    description: computation of var by symbol
+  as_of_date:
+    description: The date for which we want to compute var
+    default: None
+  look_back:
+    description: The number of days to look back for the var computation"
+  alpha:
+    description: The confidence level for the var computation
 targets:
   dev:
     # The default target uses 'mode: development' to create a development copy.
@@ -45,6 +55,10 @@ targets:
       schema_location: s3://elt-stock-bucker/schema/twelve_data_upsert_v1/
       checkpoint: s3://elt-stock-bucker/_checkpoints/twelve_data_upsert_v1/
       target_table: financial_market.dev.bronze_data
+      silver_table: financial_market.dev.silver_market_returns
+      gold_var_table: financial_market.dev.var_by_symbol
+      look_back: 252
+      alpha: 0.95
   prod:
     mode: production
     workspace:
@@ -54,11 +68,14 @@ targets:
     variables:
       catalog: financial_market
       schema: prod
-      source_path:
-        default: s3://elt-stock-bucker/stocks/Twelve_Data/
+      source_path: s3://elt-stock-bucker/stocks/Twelve_Data/
       schema_location: s3://elt-stock-bucker/schema/twelve_data_upsert_v1/
       checkpoint: s3://elt-stock-bucker/_checkpoints/twelve_data_upsert_v1/
       target_table: financial_market.prod.bronze_data
+      silver_table: financial_market.prod.silver_market_returns
+      gold_var_table: financial_market.prod.var_by_symbol
+      look_back: 252
+      alpha: 0.95
     permissions:
       - user_name: nadia.errasfatou73@gmail.com
         level: CAN_MANAGE
