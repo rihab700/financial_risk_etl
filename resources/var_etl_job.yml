@@ -28,12 +28,43 @@ resources:
           default: ${var.checkpoint}
         - name: target_table
           default: ${var.target_table}
+        - name: silver_table
+          default: ${var.silver_table}
+        - name: gold_var_table
+          default: ${var.gold_var_table}
+        - name: as_of_date
+          default: ${var.as_of_date}
+        - name: look_back
+          default: ${var.look_back}
+        - name: alpha
+          default: ${var.alpha}
+
 
       tasks:
-        - task_key: notebook_task
+        - task_key: extraction_task
           notebook_task:
-            notebook_path: ../src/var_notebook.ipynb
-            
+            notebook_path: ../src/extract_data.ipynb
+        - task_key: compute_returns_task
+          notebook_task:
+            notebook_path: ../src/compute_returns.ipynb
+          depends_on:
+            - task_key: extraction_task
+        - task_key: gateaway_task
+          notebook_task:
+            notebook_path: ../src/var_by_ticker.ipynb
+          depends_on:
+            - task_key: compute_returns_task
+          condition_task:
+            op: EQUAL_TO
+            left: "{{tasks.compute_returns_task.values.should_run_gold}}"
+            right: "true"
+        - task_key: compute_var_task
+          depends_on:
+            - task_key: gateaway_task
+              outcome: "true"
+          notebook_task:
+            notebook_path: ../src/var_by_ticker.ipynb
+                    
       environments:
         - environment_key: default
           spec:
