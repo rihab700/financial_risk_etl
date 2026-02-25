@@ -8,11 +8,9 @@ from delta.tables import DeltaTable
 
 def compute_var_by_ticker(
     df: DataFrame,
-    spark: SparkSession,
     as_of_date,          # python date or "YYYY-MM-DD"
     look_back: int,
     alpha: float,        # confidence level, e.g. 0.95
-    gold_var_table: str
 ) -> DataFrame:
 
     look_back = int(look_back)
@@ -39,11 +37,12 @@ def compute_var_by_ticker(
         .withColumn("alpha", lit(alpha).cast(DoubleType()))
         .withColumn("method", lit("historical"))
     )
-
+    return df_var_results
+def upsert_var_by_ticker(spark: SparkSession, df_var_results: DataFrame, gold_var_table: str):
     # First run: create table
     if not spark.catalog.tableExists(gold_var_table):
         (df_var_results.write.format("delta").mode("overwrite").saveAsTable(gold_var_table))
-        return df_var_results
+        return
 
     # Upsert (merge) to avoid duplicates
     tgt = DeltaTable.forName(spark, gold_var_table)
@@ -66,4 +65,4 @@ def compute_var_by_ticker(
         .execute()
     )
 
-    return df_var_results
+    return 

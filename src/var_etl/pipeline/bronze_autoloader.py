@@ -41,7 +41,7 @@ def run_autoloader_to_delta(
         spark.readStream.format("cloudFiles")
         .option("cloudFiles.format", "json")  # JSONL is fine here
         .option("cloudFiles.schemaLocation", schema_loc)
-        # optional but very useful:
+        # optional useful to know: 
         # .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
         # .option("cloudFiles.inferColumnTypes", "true")  # default is false, which means all columns inferred as string
         .load(source_path)
@@ -53,10 +53,9 @@ def run_autoloader_to_delta(
         parsed.writeStream.foreachBatch(lambda df, bid: upsert_to_delta(df, bid, target_table))
         .option("checkpointLocation", checkpoint)
         .trigger(availableNow=True)
-        .outputMode("update")  # required by Spark, but foreachBatch ignores output mode
+        .outputMode("update")
         .start()
     )
 
-    # Because you're using availableNow, it's usually best to block until done
     query.awaitTermination()
     return query

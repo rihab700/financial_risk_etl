@@ -8,6 +8,30 @@ jobs:
   # Used by the "pipeline_update" job to deploy the bundle.
   # Bundle validation is automatically performed as part of this deployment.
   # If validation fails, this workflow fails.
+  unit_tests:
+    name: "Run unit tests"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: astral-sh/setup-uv@v3
+
+      # Install deps (choose ONE style below)
+
+      # Option A (recommended): if you have pyproject.toml + uv.lock
+      - name: Install dependencies (uv)
+        run: |
+          uv sync --dev
+
+      # Option B: if you only have requirements files
+      # - name: Install dependencies (requirements)
+      #   run: |
+      #     uv pip install -r requirements.txt
+      #     uv pip install -r requirements-dev.txt
+
+      - name: Run pytest
+        run: |
+          uv run pytest -q
   deploy:
     name: 'Deploy bundle'
     runs-on: ubuntu-latest

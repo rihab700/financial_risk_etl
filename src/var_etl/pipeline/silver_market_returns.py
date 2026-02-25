@@ -6,7 +6,7 @@ from delta.tables import DeltaTable
 
 from pyspark.sql import SparkSession, DataFrame
 
-def compute_returns(df:DataFrame, spark: SparkSession, silver_table : str) :
+def compute_returns(df:DataFrame) :
     window_spec = Window.partitionBy('symbol').orderBy(desc('datetime'))
     df_return =( df
                 .withColumn('prev_close', lag('close',-1).over(window_spec))
@@ -21,9 +21,11 @@ def compute_returns(df:DataFrame, spark: SparkSession, silver_table : str) :
                 )
                 .filter(col("prev_close").isNotNull())
             )
+    return df_return
+def upsert_returns(df_return:DataFrame, spark: SparkSession, silver_table : str) -> str:
     max_date_row = (
     df_return
-    .select(F.max(F.to_date("date")).alias("max_date"))
+    .select(F.max("date").alias("max_date"))
     .collect()[0]
     )
     max_available_date = max_date_row["max_date"]
@@ -48,6 +50,5 @@ def compute_returns(df:DataFrame, spark: SparkSession, silver_table : str) :
         .whenNotMatchedInsertAll()
         .execute()
     )
-
 
     return max_available_date
